@@ -113,30 +113,30 @@ create_vps() {
     echo ""
 
     echo -e "     ${WHITE}Select OS Image:${NC}"
-    echo -e "     ${CYAN}1)${NC} Debian 13 (Trixie - Recommended, Fast & Modern)"
-    echo -e "     ${CYAN}2)${NC} Debian 12 (Bookworm - Oldstable, Lean)"
-    echo -e "     ${CYAN}3)${NC} Alpine Linux 3.20 (Ultra-light, ~50MB)"
-    echo -e "     ${CYAN}4)${NC} Ubuntu 24.04 LTS (Noble - General Dev)"
+    echo -e "     ${CYAN}1)${NC} Ubuntu 24.04 LTS (Noble - Recommended, Guaranteed Boot)"
+    echo -e "     ${CYAN}2)${NC} Ubuntu 22.04 LTS (Jammy - Stable)"
+    echo -e "     ${CYAN}3)${NC} Debian 13 (Trixie - Modern)"
+    echo -e "     ${CYAN}4)${NC} Alpine Linux 3.20 (Ultra-light, ~50MB)"
     echo -ne "${CYAN}     Choice [1-4, default: 1]: ${NC}"
     read -r OS_CHOICE
     OS_CHOICE=${OS_CHOICE:-1}
 
     case "$OS_CHOICE" in
         2)
-            OS_NAME="Debian 12"
-            IMG_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+            OS_NAME="Ubuntu 22.04"
+            IMG_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
             ;;
         3)
+            OS_NAME="Debian 13"
+            IMG_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+            ;;
+        4)
             OS_NAME="Alpine 3.20"
             IMG_URL="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/nocloud_alpine-3.20.0-x86_64-bios-cloudinit-r0.qcow2"
             ;;
-        4)
+        *)
             OS_NAME="Ubuntu 24.04"
             IMG_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-            ;;
-        *)
-            OS_NAME="Debian 13"
-            IMG_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
             ;;
     esac
 
@@ -334,7 +334,7 @@ configure_tcp() {
 save_env() {
     mkdir -p "$WORKDIR"
     cat <<EOF > "$ENV_FILE"
-OS_NAME="${OS_NAME:-Debian 13}"
+OS_NAME="${OS_NAME:-Ubuntu 24.04}"
 RAM_GB=${RAM_GB:-4}
 CPU_CORES=${CPU_CORES:-2}
 USER_NAME="${USER_NAME:-dev}"
@@ -391,20 +391,23 @@ boot_qemu() {
     echo -e "${BLUE}     ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
 
-    # Auto-detect image format (qcow2 vs raw)
-    IMG_FMT=$(qemu-img info "$VM_IMG" 2>/dev/null | grep -i 'file format:' | awk '{print $3}')
-    IMG_FMT=${IMG_FMT:-qcow2}
+    # Ensure port is not blocked by stale processes
+    if lsof -i :${TCP_HOST_PORT} >/dev/null 2>&1 || ss -tulpn 2>/dev/null | grep -q ":${TCP_HOST_PORT} "; then
+        echo -e "${YELLOW}     ⚠️ Port ${TCP_HOST_PORT} is in use. Terminating stale process...${NC}"
+        fuser -k "${TCP_HOST_PORT}/tcp" 2>/dev/null || pkill -f qemu-system-x86_64 2>/dev/null || true
+        sleep 1
+    fi
 
-    # Run QEMU foreground console; track PID in background if needed
+    # Run QEMU foreground console with primary boot drive -hda
     # shellcheck disable=SC2086
     exec qemu-system-x86_64 \
         $ACCEL_OPTS \
-        -drive file="${VM_IMG}",format="${IMG_FMT}",if=virtio \
-        -drive file="${SEED_IMG}",format=raw,if=virtio \
+        -hda "${VM_IMG}" \
+        -drive file="${SEED_IMG}",format=raw \
         -m "$RAM_VALUE" \
         -smp "${CPU_CORES:-2}" \
         -nographic \
-        -netdev user,id=net0,hostfwd=tcp:127.0.0.1:${TCP_HOST_PORT}-:${TCP_GUEST_PORT} \
+        -netdev user,id=net0,hostfwd=tcp::${TCP_HOST_PORT}-:${TCP_GUEST_PORT} \
         -device virtio-net-pci,netdev=net0
 }
 

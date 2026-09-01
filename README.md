@@ -2,7 +2,8 @@
 
 > Lightweight, secure, self-contained Cloud VPS environment optimized for CLI development, fast Zsh, and Neovim AI Mentor.
 
-[![Debian 13](https://img.shields.io/badge/OS-Debian%2013%20Trixie-D70A53?logo=debian&logoColor=white)](https://cloud.debian.org)
+[![Ubuntu 26.04](https://img.shields.io/badge/OS-Ubuntu%2026.04%20LTS-E95420?logo=ubuntu&logoColor=white)](https://cloud-images.ubuntu.com)
+[![Debian 13](https://img.shields.io/badge/OS-Debian%2013-D70A53?logo=debian&logoColor=white)](https://cloud.debian.org)
 [![QEMU/KVM](https://img.shields.io/badge/Virtualization-QEMU%20%2F%20KVM-FF6600?logo=qemu&logoColor=white)](https://www.qemu.org)
 [![Neovim](https://img.shields.io/badge/Editor-Neovim%200.11+-57A143?logo=neovim&logoColor=white)](https://neovim.io)
 [![Starship](https://img.shields.io/badge/Prompt-Starship-DD0B78?logo=starship&logoColor=white)](https://starship.rs)
@@ -26,7 +27,7 @@ bash <(curl -sL https://raw.githubusercontent.com/<YOUR_USER>/<YOUR_REPO>/main/i
 
 | Component | Stack | Purpose |
 |---|---|---|
-| **Base OS** | Debian 13 (Trixie GenericCloud) | Fast, rock-solid glibc base (~300MB) without `snapd` bloat |
+| **Base OS** | Ubuntu 26.04 LTS / Debian 13 | Latest LTS with modern kernel, glibc, and native packages |
 | **Virtualization** | QEMU + KVM Auto-Detect | Near-native speed with `/dev/kvm` hardware acceleration |
 | **Shell** | Zsh + Starship | Sub-5ms startup, substring history search, and git status prompt |
 | **CLI Toolkit** | `eza`, `bat`, `fzf`, `ripgrep`, `fd`, `uv` | Modern, high-performance replacements for core GNU utilities |

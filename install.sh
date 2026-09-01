@@ -113,8 +113,8 @@ create_vps() {
     echo ""
 
     echo -e "     ${WHITE}Select OS Image:${NC}"
-    echo -e "     ${CYAN}1)${NC} Ubuntu 24.04 LTS (Noble - Recommended, Guaranteed Boot)"
-    echo -e "     ${CYAN}2)${NC} Ubuntu 22.04 LTS (Jammy - Stable)"
+    echo -e "     ${CYAN}1)${NC} Ubuntu 26.04 LTS (Latest LTS - Recommended, Guaranteed Boot)"
+    echo -e "     ${CYAN}2)${NC} Ubuntu 24.04 LTS (Noble - Stable)"
     echo -e "     ${CYAN}3)${NC} Debian 13 (Trixie - Modern)"
     echo -e "     ${CYAN}4)${NC} Alpine Linux 3.20 (Ultra-light, ~50MB)"
     echo -ne "${CYAN}     Choice [1-4, default: 1]: ${NC}"
@@ -123,8 +123,8 @@ create_vps() {
 
     case "$OS_CHOICE" in
         2)
-            OS_NAME="Ubuntu 22.04"
-            IMG_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+            OS_NAME="Ubuntu 24.04"
+            IMG_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
             ;;
         3)
             OS_NAME="Debian 13"
@@ -135,8 +135,8 @@ create_vps() {
             IMG_URL="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/nocloud_alpine-3.20.0-x86_64-bios-cloudinit-r0.qcow2"
             ;;
         *)
-            OS_NAME="Ubuntu 24.04"
-            IMG_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+            OS_NAME="Ubuntu 26.04"
+            IMG_URL="https://cloud-images.ubuntu.com/releases/26.04/release/ubuntu-26.04-server-cloudimg-amd64.img"
             ;;
     esac
 
@@ -334,7 +334,7 @@ configure_tcp() {
 save_env() {
     mkdir -p "$WORKDIR"
     cat <<EOF > "$ENV_FILE"
-OS_NAME="${OS_NAME:-Ubuntu 24.04}"
+OS_NAME="${OS_NAME:-Ubuntu 26.04}"
 RAM_GB=${RAM_GB:-4}
 CPU_CORES=${CPU_CORES:-2}
 USER_NAME="${USER_NAME:-dev}"

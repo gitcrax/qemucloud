@@ -188,6 +188,17 @@ create_vps() {
     SEED_IMG="${WORKDIR}/seed.img"
     USER_DATA="${WORKDIR}/user-data"
 
+    # Download or verify existing image
+    if [ -f "$VM_IMG" ]; then
+        IMG_FMT=$(qemu-img info "$VM_IMG" 2>/dev/null | grep -i 'file format:' | awk '{print $3}')
+        if [ -z "$IMG_FMT" ]; then
+            echo -e "${YELLOW}     ⚠️ Corrupt or incomplete image detected. Purging...${NC}"
+            rm -f "$VM_IMG"
+        else
+            echo -e "${GREEN}     ✅ Valid ${IMG_FMT} image detected: ${VM_IMG}${NC}"
+        fi
+    fi
+
     if [ ! -f "$VM_IMG" ]; then
         echo -e "${YELLOW}     📥 Downloading ${OS_NAME} Cloud Image...${NC}"
         if command -v wget >/dev/null 2>&1; then
@@ -195,8 +206,6 @@ create_vps() {
         else
             curl -L --progress-bar -o "$VM_IMG" "$IMG_URL"
         fi
-    else
-        echo -e "${GREEN}     ✅ Existing Cloud Image detected: ${VM_IMG}${NC}"
     fi
     chmod 600 "$VM_IMG" 2>/dev/null || true
 
@@ -382,11 +391,15 @@ boot_qemu() {
     echo -e "${BLUE}     ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
 
+    # Auto-detect image format (qcow2 vs raw)
+    IMG_FMT=$(qemu-img info "$VM_IMG" 2>/dev/null | grep -i 'file format:' | awk '{print $3}')
+    IMG_FMT=${IMG_FMT:-qcow2}
+
     # Run QEMU foreground console; track PID in background if needed
     # shellcheck disable=SC2086
     exec qemu-system-x86_64 \
         $ACCEL_OPTS \
-        -drive file="${VM_IMG}",format=qcow2,if=virtio \
+        -drive file="${VM_IMG}",format="${IMG_FMT}",if=virtio \
         -drive file="${SEED_IMG}",format=raw,if=virtio \
         -m "$RAM_VALUE" \
         -smp "${CPU_CORES:-2}" \
